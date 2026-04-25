@@ -12,7 +12,6 @@ app.config['JWT_SECRET_KEY'] = 'super-secret-key'
 auth = HTTPBasicAuth()
 jwt = JWTManager(app)
 
-# İstifadəçi məlumat bazası
 users = {
     "user1": {
         "username": "user1",
@@ -27,7 +26,6 @@ users = {
 }
 
 
-# Basic Auth yoxlaması
 @auth.verify_password
 def verify_password(username, password):
     user = users.get(username)
@@ -36,14 +34,12 @@ def verify_password(username, password):
     return None
 
 
-# Basic Auth ilə qorunan marşrut
 @app.route("/basic-protected")
 @auth.login_required
 def basic_protected():
     return "Basic Auth: Access Granted"
 
 
-# Login və JWT Token verilməsi
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json(silent=True)
@@ -55,7 +51,6 @@ def login():
 
     user = users.get(username)
     if user and check_password_hash(user['password'], password):
-        # Rol məlumatını tokenin daxilinə qoyuruq (identity kimi)
         access_token = create_access_token(identity={
             "username": username,
             "role": user['role']
@@ -65,14 +60,12 @@ def login():
     return jsonify({"error": "Invalid credentials"}), 401
 
 
-# JWT ilə qorunan marşrut
 @app.route("/jwt-protected")
 @jwt_required()
 def jwt_protected():
     return "JWT Auth: Access Granted"
 
 
-# Yalnız Adminlər üçün marşrut
 @app.route("/admin-only")
 @jwt_required()
 def admin_only():
@@ -82,7 +75,6 @@ def admin_only():
     return "Admin Access: Granted"
 
 
-# JWT Xəta emalı (Bütün xətalar 401 qaytarmalıdır)
 @jwt.unauthorized_loader
 def handle_unauthorized_error(err):
     return jsonify({"error": "Missing or invalid token"}), 401
